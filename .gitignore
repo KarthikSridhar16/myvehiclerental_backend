@@ -1,0 +1,23 @@
+# deps
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# env & local
+.env
+.env.*
+*.local
+
+# logs
+*.log
+logs/
+
+# build/output (if any later)
+dist/
+coverage/
+
+# editors/OS
+.vscode/
+.DS_Store
+Thumbs.db
