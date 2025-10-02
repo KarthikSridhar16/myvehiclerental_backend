@@ -1,11 +1,9 @@
-// server/src/emails/layout.js
-export const brand = 'VRUMA';
+export const brand = "VRUMA Cars";
 
 export function wrapEmail({ title, bodyHtml }) {
   const logoTag = `<img src="cid:brandlogo" alt="${brand}" style="height:52px;display:inline-block;" />`;
 
-  return `
-  <!doctype html>
+  return `<!doctype html>
   <html>
     <head>
       <meta charset="utf-8" />
@@ -18,14 +16,10 @@ export function wrapEmail({ title, bodyHtml }) {
           <td align="center" style="padding:24px 12px;">
             <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eef2ff;">
               <tr>
-                <td style="background:#0b1020;padding:20px;text-align:center;">
-                  ${logoTag}
-                </td>
+                <td style="background:#0b1020;padding:20px;text-align:center;">${logoTag}</td>
               </tr>
               <tr>
-                <td style="padding:24px;">
-                  ${bodyHtml}
-                </td>
+                <td style="padding:24px;">${bodyHtml}</td>
               </tr>
               <tr>
                 <td style="padding:16px 24px;background:#f8fafc;color:#334155;font-size:12px;text-align:center">
