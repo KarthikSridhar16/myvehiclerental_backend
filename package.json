@@ -4,12 +4,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-        "dev": "node --watch src/index.js",
+    "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "seed": "node scripts/seed.js",
     "seed:depots": "node scripts/seed-depots.js",
     "link:vehicles": "node scripts/link-vehicles-to-depots.js"
-
   },
   "keywords": [],
   "author": "",
