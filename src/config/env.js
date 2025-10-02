@@ -1,19 +1,27 @@
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
+  isProd: process.env.NODE_ENV === 'production',
   port: Number(process.env.PORT || 8099),
+
   mongoUri: process.env.MONGO_URI,
 
+  // CORS
   corsOrigin: process.env.CORS_ORIGIN || '',
 
+  // Auth
   jwtSecret: process.env.JWT_SECRET,
   jwtExpires: process.env.JWT_EXPIRES || '7d',
 
+  // Email
   emailFrom: process.env.EMAIL_FROM,
+  sendgridApiKey: process.env.SENDGRID_API_KEY, // <- use this in sendMail
+  // SMTP kept for local/dev fallback (Render blocks SMTP)
   smtpHost: process.env.SMTP_HOST,
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
 
+  // Razorpay
   razorpayKeyId: process.env.RAZORPAY_KEY_ID,
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET,
@@ -22,4 +30,7 @@ export const env = {
 
   stripeSecret: process.env.STRIPE_SECRET,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+
+  appUrl: (process.env.APP_URL || '').replace(/\/$/, '') || undefined,
+  frontendUrl: (process.env.FRONTEND_URL || '').replace(/\/$/, '') || undefined,
 };
