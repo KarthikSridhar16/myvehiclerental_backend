@@ -5,23 +5,20 @@ export const env = {
 
   mongoUri: process.env.MONGO_URI,
 
-  // CORS
   corsOrigin: process.env.CORS_ORIGIN || '',
 
-  // Auth
   jwtSecret: process.env.JWT_SECRET,
   jwtExpires: process.env.JWT_EXPIRES || '7d',
 
-  // Email
+
   emailFrom: process.env.EMAIL_FROM,
-  sendgridApiKey: process.env.SENDGRID_API_KEY, // <- use this in sendMail
-  // SMTP kept for local/dev fallback (Render blocks SMTP)
+  sendgridApiKey: process.env.SENDGRID_API_KEY, 
+
   smtpHost: process.env.SMTP_HOST,
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
 
-  // Razorpay
   razorpayKeyId: process.env.RAZORPAY_KEY_ID,
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET,
