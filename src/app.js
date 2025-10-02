@@ -18,40 +18,49 @@ import { notFound, errorHandler } from './middleware/error.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const allowList = (env.corsOrigin || '')
   .split(',')
-  .map((s) => s.trim())
+  .map(s => s.trim())
   .filter(Boolean);
 
 const corsMw = cors({
   origin(origin, cb) {
-    if (!origin) return cb(null, true);           
-    if (!allowList.length) return cb(null, true); 
+    if (!origin) return cb(null, true);            
+    if (!allowList.length) return cb(null, true);  
     if (allowList.includes(origin)) return cb(null, true);
     return cb(new Error('CORS: origin not allowed'), false);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET','POST','PATCH','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
 });
 
 app.use(corsMw);
 app.options(/.*/, corsMw);
 
-
 app.use(helmet());
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-startBookingExpiryJob();
 app.use('/assets', express.static(path.resolve(__dirname, '../assets')));
-
 app.use('/payments', paymentsRoutes);
 
 app.use(express.json({ limit: '1mb' }));
+
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'vehicle-rental-api',
+    backend: 'https://myvehiclerental-backend.onrender.com',
+    frontend: 'https://vrumacars.netlify.app',
+    time: new Date().toISOString(),
+  });
+});
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
