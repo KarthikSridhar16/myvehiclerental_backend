@@ -6,7 +6,9 @@
   "scripts": {
         "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "seed:depots": "node scripts/seed-depots.js",
+    "link:vehicles": "node scripts/link-vehicles-to-depots.js"
 
   },
   "keywords": [],

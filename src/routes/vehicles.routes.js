@@ -1,7 +1,19 @@
-import { Router } from 'express';
-import { list, detail, availability } from '../controllers/vehicles.controller.js';
-const r = Router();
-r.get('/', list);
-r.get('/:id', detail);
-r.get('/:id/availability', availability);
-export default r;
+import { Router } from "express";
+import {
+  listVehiclesPublic,
+  getVehiclePublic,
+  getVehicleBlockedRanges,
+  getVehicleReviewsPublic,
+} from "../controllers/vehicles.controller.js";
+
+const router = Router();
+
+// List/search MUST come before param routes
+router.get("/", listVehiclesPublic);
+
+// Param sub-routes must be ordered most-specific -> least-specific
+router.get("/:id/blocked", getVehicleBlockedRanges);
+router.get("/:id/reviews", getVehicleReviewsPublic);
+router.get("/:id", getVehiclePublic);
+
+export default router;

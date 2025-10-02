@@ -1,32 +1,74 @@
-import Vehicle from '../models/Vehicle.js';
-import Booking from '../models/Booking.js';
-import { ah } from '../utils/asyncHandler.js';
+import Vehicle from "../models/Vehicle.js";
+import Booking from "../models/Booking.js";
+import Review from "../models/Review.js";
+import { ah } from "../utils/asyncHandler.js";
 
-export const list = ah(async (req,res)=>{
-  const { q, type, min, max, location, sort='-createdAt', page=1, limit=12 } = req.query;
-  const filter = { status:'approved' };
-  if(q) filter.$text = { $search: q };
-  if(type) filter.type = type;
-  if(location) filter.location = location;
-  if(min || max) filter.pricePerDay = { ...(min?{$gte:+min}:{}) , ...(max?{$lte:+max}:{}) };
-  const data = await Vehicle.find(filter).sort(String(sort)).skip((+page-1)*+limit).limit(+limit);
-  const count = await Vehicle.countDocuments(filter);
-  res.json({ data, count });
+export const listVehiclesPublic = ah(async (req, res) => {
+  const { q, page = 1, limit = 20 } = req.query;
+
+  const filter = { status: "approved" };
+  if (q) {
+    const rx = new RegExp(String(q), "i");
+    filter.$or = [
+      { make: rx },
+      { model: rx },
+      { type: rx },
+      { location: rx },
+      { description: rx },
+    ];
+  }
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const [items, total] = await Promise.all([
+    Vehicle.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
+    Vehicle.countDocuments(filter),
+  ]);
+
+  res.json({ page: Number(page), limit: Number(limit), total, data: items });
 });
 
-export const detail = ah(async (req,res)=>{
-  const v = await Vehicle.findById(req.params.id);
-  if(!v || v.status!=='approved') return res.status(404).json({error:'Not found'});
-  res.json(v);
+export const getVehiclePublic = ah(async (req, res) => {
+  const v = await Vehicle.findById(req.params.id).lean();
+  if (!v || v.status !== "approved") {
+    return res.status(404).json({ message: "Vehicle not found" });
+  }
+  res.json({ data: v });
 });
 
-export const availability = ah(async (req,res)=>{
-  const { from, to } = req.query;
-  const vehicleId = req.params.id;
-  const blocks = await Booking.find({
-    vehicleId,
-    status: { $in: ['pending','confirmed'] },
-    $or: [{ start: { $lt: new Date(to) }, end: { $gt: new Date(from) } }]
-  }).select('start end');
-  res.json({ blocks });
+export const getVehicleBlockedRanges = ah(async (req, res) => {
+  const now = new Date();
+  const books = await Booking.find({
+    vehicleId: req.params.id,
+    $or: [
+      { status: "confirmed" },
+      { status: "pending", pendingHoldUntil: { $gt: now } },
+    ],
+  })
+    .select("start end")
+    .lean();
+
+  const ranges = books.map((b) => {
+    const from = new Date(b.start); from.setHours(0, 0, 0, 0);
+    const to = new Date(b.end);     to.setHours(23, 59, 59, 999);
+    return { from, to };
+  });
+
+  res.json({ data: ranges });
+});
+
+export const getVehicleReviewsPublic = ah(async (req, res) => {
+  const docs = await Review.find({ vehicleId: req.params.id, status: "approved" })
+    .populate("userId", "name")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const data = docs.map((r) => ({
+    _id: r._id,
+    rating: r.rating,
+    comment: r.comment,
+    createdAt: r.createdAt,
+    user: r.userId ? { name: r.userId.name } : undefined,
+  }));
+
+  res.json({ data });
 });

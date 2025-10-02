@@ -3,7 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
+
+import { startBookingExpiryJob } from './jobs/bookingExpirer.js';
 import authRoutes from './routes/auth.routes.js';
 import vehiclesRoutes from './routes/vehicles.routes.js';
 import bookingsRoutes from './routes/bookings.routes.js';
@@ -14,25 +18,46 @@ import { notFound, errorHandler } from './middleware/error.js';
 
 const app = express();
 
-// NOTE: Stripe webhook route needs raw body, so we mount payments router BEFORE json parser on that path.
-// We’ll mount the webhook subpath directly here to guarantee order:
-import paymentsRouter from './routes/payments.routes.js';
-app.use('/payments/webhook', paymentsRouter); // only webhook subroute uses raw
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// General parsers
+const allowList = (env.corsOrigin || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const corsMw = cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);           
+    if (!allowList.length) return cb(null, true); 
+    if (allowList.includes(origin)) return cb(null, true);
+    return cb(new Error('CORS: origin not allowed'), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+});
+
+app.use(corsMw);
+app.options(/.*/, corsMw);
+
+
 app.use(helmet());
-app.use(cors({ origin: env.corsOrigin, credentials: true }));
-app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-app.get('/health', (_req,res)=>res.json({ok:true}));
+startBookingExpiryJob();
+app.use('/assets', express.static(path.resolve(__dirname, '../assets')));
 
-// Normal routers
+app.use('/payments', paymentsRoutes);
+
+app.use(express.json({ limit: '1mb' }));
+
+app.get('/health', (_req, res) => res.json({ ok: true }));
+
 app.use('/auth', authRoutes);
 app.use('/vehicles', vehiclesRoutes);
 app.use('/bookings', bookingsRoutes);
-app.use('/payments', paymentsRoutes); // (intent etc.)
 app.use('/reviews', reviewsRoutes);
 app.use('/admin', adminRoutes);
 

@@ -9,7 +9,7 @@ export const approveVehicle = ah(async (req,res)=>{
 });
 
 export const moderateReview = ah(async (req,res)=>{
-  const { status } = req.body; // approved/rejected
+  const { status } = req.body; 
   const r = await Review.findByIdAndUpdate(req.params.id, { status }, { new:true });
   if(!r) return res.status(404).json({error:'Not found'});
   if(status === 'approved'){
